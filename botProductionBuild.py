@@ -81,6 +81,10 @@ async def setupChannel(ctx, helperchannelname):
             await ctx.send("Your server and helper channel has been added to our list! WOWZERS!")
     if helpersID == 0:
         await ctx.send("Oooooooooooooops that channel doesn't exist :(")
+    
+
+    newRole = await ctx.message.guild.create_role(name="loggedIn")
+    
 @bot.command(name = "getHelperChannel", help = "Run this to get the ID of the Helper Channel", hidden=True)
 async def getHelperChannel(ctx,guildID):
     files = fileReadWrite("guildInfo.txt")
@@ -97,14 +101,27 @@ async def helperLogin(ctx):
     Name = ctx.message.author.name
     channelSent = str(ctx.message.channel.id)
     guildID = str(ctx.message.guild.id)
-    helperChan = nonAsyncGetHelperChannel(str(guildID))
+    helperChan = nonAsyncGetHelperChannel(str(guildID))    
     if str(channelSent) in str(helperChan) or str(helperChan) in str(channelSent):
         if checkIfloggedIn(ID,helperArray):
             await ctx.send("Oi you are already in our system jog on")
         else:
             newhelper = helper(Name, ID)
             helperArray.append(newhelper)
+            #authorRoles = get(ctx.author.roles,"loggedIn")
+
+            loginRoleName = "loggedIn"
+            loginRole = get(ctx.guild.roles, name=loginRoleName)
+            await ctx.author.add_roles(loginRole)
+
+
+
+
             await ctx.send("Awwwww look at that you want to help people! Well your wish is granted")
+
+
+            
+    
     else:
         await ctx.send("Ummmmm either wrong place or you ain't no helper! Naughty! ;(")
 @bot.command(name="dmmepls", help="Please use this in the format !dmmepls ISSUE TOPIC")
@@ -113,8 +130,12 @@ async def dmmepls(ctx, *, Topic):
     userid = ctx.author.id
     helperChannel = int(nonAsyncGetHelperChannel(str(guildId)))
     helperChannel = bot.get_channel(helperChannel)
+    loginRoleName = "loggedIn"
+    loginRole = get(ctx.guild.roles, name=loginRoleName)
+
     await ctx.send("Whoopsy? Looking for some help! Don't worry we have sent it off to our special little helper elves and you'll be put in a channel with one")
-    await helperChannel.send(f'ATTENTION @everyone ! {ctx.author.display_name} requires your assistance with {Topic}!Please type !accept to add them to your queue!')
+    #await helperChannel.send(f'ATTENTION @everyone ! {ctx.author.display_name} requires your assistance with {Topic}!Please type !accept to add them to your queue!')
+    await helperChannel.send(f'ATTENTION ! {loginRole.mention} {ctx.author.display_name} requires your assistance with {Topic}!Please type !accept to add them to your queue!')
     mainQueue.append([guildId,userid,ctx.author.display_name,Topic])
 @bot.command(name="viewqueue", help="For Helpers - shows the current queue for the server")
 async def viewQueue(ctx):
@@ -212,10 +233,9 @@ async def startNew(ctx):
         newRole = await ctx.message.guild.create_role(name=newChannelID)
         channel = await ctx.guild.create_text_channel(newChannelID)
         await target.add_roles(newRole)
-        await ctx.author.add_roleS(newRole)
+        await ctx.author.add_roles(newRole)
         await channel.set_permissions(ctx.guild.default_role, read_messages = False)
-        await channel.set_permissions(ctx.guild.default_role, read_messages = False)
-        await channel.set_permissions(newRole, read_messages=True,send_messages=True)
+        await channel.set_permissions(newRole, read_messages=True)
         await channel.send("Yay you two are together <3 please do !complete when you have finished your little chat :)")
     else:
         await ctx.send("Sorry you don't have permission for this")
@@ -237,7 +257,22 @@ async def logout(ctx):
     for users in helperArray:
         if user == users.discordUserID:
             helperArray.remove(users)
+            loginRoleName = "loggedIn"
+            loginRole = get(ctx.guild.roles, name=loginRoleName)
+            await ctx.author.remove_roles(loginRole)
             await ctx.send("You are now logged out :) Enjoy the time off")
+
+@bot.command(name="helpers")
+async def helperHelp(ctx):
+    ID = ctx.author.id
+    Name = ctx.message.author.name
+    channelSent = str(ctx.message.channel.id)
+    guildID = str(ctx.message.guild.id)
+    helperChan = nonAsyncGetHelperChannel(str(guildID))    
+    if str(channelSent) in str(helperChan) or str(helperChan) in str(channelSent):
+        await ctx.send("!accept - This command accepts an incoming request and adds it to your queue\n !complete  for both helpers and the helped - when you are finishing your 1-to-1 call this and it will end your queue request\n !donate - Get a donation Link for the Running of the server\n !login - Run this command if you are in the helper channel to set yourself as available for requests\n !logout  - Use this to log out from accepting requests\n !myqueue - shows the contents of your queue\n !startnew  This starts the next request in your queue\n !viewqueue Shows the current queue for the server")
+    else:
+        await ctx.send("Ooooooops this can only be called in the helper channel")
 
 @bot.command(name="donate", help ="Get a donation Link for the Running of the server")
 async def donate(ctx):
