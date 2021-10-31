@@ -8,15 +8,17 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 helperArray = []
 randomChannels = []
 mainQueue = []
+
+#Class responsible for saving data into the file
 class fileReadWrite():
     file = ""
     def __init__(self,filepath):
         self.file=filepath
-    def fileJSONWrite(self,guildID,channelhID):
+    def fileJSONWrite(self,guildID,channelhID): #Function that saves guildID and channelID provided as parameters into the class's file
         with open(self.file,"a") as fileObject:
             fileObject.write(f"^{guildID},{channelhID}")
             fileObject.close()
-    def fileGetGuildIDAndChannelID(self,serverGuildID):
+    def fileGetGuildIDAndChannelID(self,serverGuildID):  
         with open(self.file,"r") as fileObject:
             text = fileObject.read()
             fileObject.close()
@@ -62,7 +64,7 @@ class helper():
         self.queue.append(data)
     def removeMostRecent(self):
         self.queue.pop(0)
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='?')
 def checkIfloggedIn(ID,ha):
     li = False
     for i in ha:
@@ -72,12 +74,18 @@ def checkIfloggedIn(ID,ha):
 @bot.command(name = "setup", help="Run this on initial setup - requires input of the helpers channel name")
 async def setupChannel(ctx, helperchannelname):
     helpersID = 0
-    guildID = ctx.message.guild.id    
+    guildID = ctx.message.guild.id  
+    
     for i in ctx.guild.channels:
         if i.name == helperchannelname:
             helpersID = i.id
+            category = await ctx.guild.create_category("Assist-Channels")
+            loginRoleName = "loggedIn"
+            loginRole = get(ctx.guild.roles, name=loginRoleName)
+            await category.set_permissions(loginRole, read_messages=True, send_messages=True)
+            await category.set_permissions(ctx.guild.default_role, read_messages=False, send_messages=False)
             files = fileReadWrite("guildInfo.txt")
-            files.fileJSONWrite(guildID,helpersID)
+            files.fileJSONWrite(str(guildID),str(helpersID))
             await ctx.send("Your server and helper channel has been added to our list! WOWZERS!")
     if helpersID == 0:
         await ctx.send("Oooooooooooooops that channel doesn't exist :(")
@@ -229,9 +237,10 @@ async def startNew(ctx):
                 users.removeMostRecent()
         newChannelID = newRandomChannelName()
         await ctx.send(f"Message in channel: {newChannelID}")
-        category = helperChannel.category
         newRole = await ctx.message.guild.create_role(name=newChannelID)
-        channel = await ctx.guild.create_text_channel(newChannelID)
+        #Makes a new channel in the Assist-Channels category
+        categoryChannel = get(ctx.guild.categories,name="Assist-Channels")
+        channel = await ctx.guild.create_text_channel(newChannelID,overrites=None,category = categoryChannel)
         await target.add_roles(newRole)
         await ctx.author.add_roles(newRole)
         await channel.set_permissions(ctx.guild.default_role, read_messages = False)
@@ -283,4 +292,4 @@ async def on_command_error(ctx, error):
         await ctx.send('Hmmmmmmm we seem to be missing something - Make sure you are giving us a topic or relevant info :)') 
 print("Bot is Running")
 #Run with the key
-bot.run(TOKEN[1:len(TOKEN)-1])
+bot.run("OTAwNzgwNDUxMTM5MDU1NjE3.YXGTKw.Mela9VKPSr2hNAq2QIO9heXxysY")
