@@ -17,6 +17,7 @@ Q accept - accepts a request and adds it to your queue<br />
 Q start- starts the newest request in your queue<br />
 Q viewqueue - shows the requests currently in your server's queue and who they are assigned to<br />
 Q complete - this is typed in the new channel that is created when a new request is started<br />
+Q link 
 <br />
 
 <br />
