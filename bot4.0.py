@@ -182,6 +182,22 @@ bot.SQL = SQLQueries()
 randomChannels = []
 bot.usedChannels = []
 
+@bot.command(name = "link")
+async def getLink(ctx,* ,topic):
+    tmpStr = ""
+    try:
+        for i in topic:
+            if i == "" or i == " ":
+                tmpStr+="+"
+            else:
+                tmpStr+=i
+        await ctx.send("https://www.google.com/search?q="+tmpStr)
+
+
+    except Exception as e:
+        await ctx.send(e)
+
+
 @bot.command(name = "setup", help="Run this on initial setup - requires input of the helpers channel name")
 async def setupChannel(ctx, helperchannelname):
     guildID = ctx.message.guild.id  
